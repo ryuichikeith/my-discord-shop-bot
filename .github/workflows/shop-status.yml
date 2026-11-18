@@ -5,7 +5,16 @@ on:
   schedule:
     - cron: "0 1 * * *"
     - cron: "0 17 * * *"
+
   workflow_dispatch:
+    inputs:
+      status:
+        description: "Choose shop status to announce"
+        required: true
+        type: choice
+        options:
+          - open
+          - closed
 
 jobs:
   announce:
@@ -15,23 +24,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Send OPEN announcement
-        if: github.event.schedule == '0 1 * * *'
-        run: python send_status.py open
+      - name: Send shop announcement
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
           CLIENTS_ROLE_ID: ${{ secrets.CLIENTS_ROLE_ID }}
-
-      - name: Send CLOSED announcement
-        if: github.event.schedule == '0 17 * * *'
-        run: python send_status.py closed
-        env:
-          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
-          CLIENTS_ROLE_ID: ${{ secrets.CLIENTS_ROLE_ID }}
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          MANUAL_STATUS: ${{ inputs.status }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            python send_status.py "$MANUAL_STATUS"
+          elif [ "$SCHEDULE" = "0 1 * * *" ]; then
+            python send_status.py open
+          elif [ "$SCHEDULE" = "0 17 * * *" ]; then
+            python send_status.py closed
+          fi
