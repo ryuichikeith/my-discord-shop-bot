@@ -14,13 +14,8 @@ status = sys.argv[1].lower()
 if status not in ("open", "closed"):
     raise ValueError("Status must be open or closed.")
 
-heading = (
-    "SHOP IS NOW OPEN !"
-    if status == "open"
-    else "SHOP IS NOW CLOSED !"
-)
-
-message = f"""{heading}
+if status == "open":
+    message = f"""SHOP IS NOW OPEN !
 
 - please read and follow our shop terms and conditions before availing any service.
 - create a ticket whenever you wish to avail of a commission.
@@ -29,6 +24,17 @@ message = f"""{heading}
 -# shop status from 9 am to 1 am only.
 
 thank you for choosing our shop! we appreciate your support. ♡ ||<@&{ROLE_ID}>||"""
+
+else:
+    message = f"""SHOP IS NOW CLOSED !
+
+- thank you for staying with us today.
+- please refrain from creating a ticket while the shop is closed. you may submit one once we reopen.
+- our staff will resume attending to commissions during the next shop hours.
+-# shop status from 9 am to 1 am only.
+
+thank you for choosing our shop! we appreciate your support. ♡ ||<@&{ROLE_ID}>||"""
+
 
 BASE_URL = "https://discord.com/api/v10"
 
