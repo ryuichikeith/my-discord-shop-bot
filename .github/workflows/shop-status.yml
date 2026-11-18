@@ -1,0 +1,37 @@
+
+name: Shop Status Announcements
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Send OPEN announcement
+        if: github.event.schedule == '0 1 * * *'
+        run: python send_status.py open
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+          CLIENTS_ROLE_ID: ${{ secrets.CLIENTS_ROLE_ID }}
+
+      - name: Send CLOSED announcement
+        if: github.event.schedule == '0 17 * * *'
+        run: python send_status.py closed
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+          CLIENTS_ROLE_ID: ${{ secrets.CLIENTS_ROLE_ID }}
