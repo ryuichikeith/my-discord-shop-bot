@@ -20,5 +20,13 @@ async def on_ready():
     )
     print(f"Ashru is online as {client.user}")
 
+try:
+    import presence as __cogit_presence
+    __cogit_presence.bind(
+        bot if "bot" in dir() else (client if "client" in dir() else None)
+    )
+except Exception as __cogit_presence_err:
+    print("[CogitHost] presence", __cogit_presence_err)
+
 client.run(TOKEN)
 
