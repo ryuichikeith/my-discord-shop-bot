@@ -45,5 +45,10 @@ request = urllib.request.Request(
     method="POST"
 )
 
-with urllib.request.urlopen(request) as response:
-    print(f"Announcement sent! HTTP {response.status}")
+try:
+    with urllib.request.urlopen(request) as response:
+        print(f"Announcement sent! HTTP {response.status}")
+except urllib.error.HTTPError as error:
+    print("Discord API Error:", error.code)
+    print(error.read().decode("utf-8"))
+    raise
