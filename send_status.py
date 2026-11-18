@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import urllib.request
+import urllib.error
 
 TOKEN = os.environ["DISCORD_TOKEN"]
 CHANNEL_ID = os.environ["CHANNEL_ID"]
@@ -40,7 +41,8 @@ request = urllib.request.Request(
     data=json.dumps(payload).encode("utf-8"),
     headers={
         "Authorization": f"Bot {TOKEN}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "DiscordBot (https://github.com/YOUR_USERNAME/my-discord-shop-bot, 1.0)"
     },
     method="POST"
 )
@@ -48,7 +50,12 @@ request = urllib.request.Request(
 try:
     with urllib.request.urlopen(request) as response:
         print(f"Announcement sent! HTTP {response.status}")
+
 except urllib.error.HTTPError as error:
     print("Discord API Error:", error.code)
-    print(error.read().decode("utf-8"))
+    print(error.read().decode("utf-8", errors="replace"))
+    raise
+
+except urllib.error.URLError as error:
+    print("Connection Error:", error.reason)
     raise
