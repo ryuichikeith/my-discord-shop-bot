@@ -4,10 +4,25 @@ import sys
 import json
 import urllib.request
 import urllib.error
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 TOKEN = os.environ["DISCORD_TOKEN"]
 CHANNEL_ID = os.environ["CHANNEL_ID"]
 ROLE_ID = os.environ["CLIENTS_ROLE_ID"]
+
+PH_TZ = ZoneInfo("Asia/Manila")
+
+
+def log_time(label):
+    now = datetime.now(PH_TZ)
+    print(
+        f"[{now.strftime('%Y-%m-%d %I:%M:%S %p PHT')}] {label}",
+        flush=True
+    )
+
+
+log_time("Script started")
 
 status = sys.argv[1].lower()
 
@@ -64,17 +79,16 @@ def discord_request(method, endpoint, payload=None):
 
 
 try:
-    # Get bot information
+    log_time("Connecting to Discord API")
+
     bot = discord_request("GET", "/users/@me")
     bot_id = bot["id"]
 
-    # Get recent channel messages
     messages = discord_request(
         "GET",
         f"/channels/{CHANNEL_ID}/messages?limit=100"
     )
 
-    # Find previous shop status announcements
     old_status_messages = [
         msg for msg in messages
         if msg["author"]["id"] == bot_id
@@ -84,7 +98,6 @@ try:
         ))
     ]
 
-    # Send the new announcement
     payload = {
         "content": message,
         "allowed_mentions": {
@@ -93,36 +106,37 @@ try:
         }
     }
 
+    log_time(f"Sending {status.upper()} announcement")
+
     new_message = discord_request(
         "POST",
         f"/channels/{CHANNEL_ID}/messages",
         payload
     )
 
-    print(
-        f"Announcement sent! "
+    log_time(
+        f"Announcement sent successfully! "
         f"Message ID: {new_message['id']}"
     )
 
-    # Delete previous shop status announcements
     for old_message in old_status_messages:
         discord_request(
             "DELETE",
             f"/channels/{CHANNEL_ID}/messages/{old_message['id']}"
         )
 
-        print(
-            f"Previous announcement deleted: "
-            f"{old_message['id']}"
+        log_time(
+            f"Previous announcement deleted: {old_message['id']}"
         )
 
-    print("Shop status updated successfully!")
+    log_time("Shop status updated successfully!")
 
 except urllib.error.HTTPError as error:
-    print("Discord API Error:", error.code)
+    log_time(f"Discord API Error: {error.code}")
     print(error.read().decode("utf-8", errors="replace"))
     raise
 
 except urllib.error.URLError as error:
-    print("Connection Error:", error.reason)
+    log_time(f"Connection Error: {error.reason}")
     raise
+
